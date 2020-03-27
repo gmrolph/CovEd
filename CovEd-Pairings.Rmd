@@ -1,0 +1,96 @@
+---
+title: "CovEd"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(janitor)
+library(googlesheets4)
+library(stringr)
+```
+
+```{r}
+students <- read_sheet("https://docs.google.com/spreadsheets/d/1d8ZQT5LRv-LP5xyJn7NpSh-yRTvDNPe_C5u8ILUC0Ek/edit#gid=1099664139") %>% 
+  clean_names() %>% 
+  rename("subjects" = "which_subjects_would_you_like_to_receive_the_most_support_with")
+```
+
+```{r}
+tutors <- read_sheet("https://docs.google.com/spreadsheets/d/1WF7al7SOlf3ntEUwVEa2BwQw10jfzwdfOO7lkM6QUvw/edit#gid=766034063") %>% 
+  clean_names() %>% 
+  rename("grade" = "what_grade_levels_are_you_comfortable_tutoring_mentoring",
+         "subject" = "which_subjects_are_you_comfortable_helping_students_with")
+```
+
+
+```{r}
+my_students <- students[c(124:164), ]
+
+my_students %>% 
+  group_by(grade_level) %>% 
+  count() 
+```
+
+```{r}
+student_name_location_grade <- my_students %>% 
+  select(student_name, grade_level, state_abbreviation, subjects) 
+
+tutor_name_location_grade_subject <- tutors %>% 
+  select(name, hometown_location, grade, subject) 
+
+CA_tutors <- tutor_name_location_grade_subject %>% 
+  filter(str_detect(hometown_location, "CA")) %>% 
+  filter(str_detect(subject, "Physics")) %>% 
+  filter(str_detect(subject, "Calculus")) 
+```
+
+```{r}
+current <- student_name_location_grade %>% 
+  filter(grade_level == "9th") %>% 
+  View()
+
+current
+```
+
+```{r}
+tutor_name_location_grade_subject %>% 
+  filter(str_detect(subject, "Computer Science")) %>% 
+  View()
+```
+
+```{r}
+current_tutor <- tutor_name_location_grade_subject %>% 
+  filter(str_detect(hometown_location, "NY")) %>% 
+  filter(str_detect(subject, "Math")) %>% 
+  View()
+```
+
+```{r}
+  
+my_freshmen <- student_name_location_grade %>% 
+  filter(grade_level == "9th") 
+
+my_sophomores <- student_name_location_grade %>% 
+  filter(grade_level == "10th") 
+
+my_juniors <- student_name_location_grade %>% 
+  filter(grade_level == "11th")
+
+my_seniors <- student_name_location_grade %>% 
+  filter(grade_level == "12th") 
+```
+
+Seniors: DONE
+Juniors:
+Sophomores:
+Freshmen:
+8th grade: NONE
+7th grade: DONE
+6th grade: NONE
+5th grade: DONE
+4th grade: DONE
+3rd grade: DONE
+2nd grade: DONE
+1st grade: DONE
