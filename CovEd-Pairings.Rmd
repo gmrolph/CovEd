@@ -14,7 +14,7 @@ library(stringr)
 ```{r}
 students <- read_sheet("https://docs.google.com/spreadsheets/d/1d8ZQT5LRv-LP5xyJn7NpSh-yRTvDNPe_C5u8ILUC0Ek/edit#gid=1099664139") %>% 
   clean_names() %>% 
-  rename("subjects" = "which_subjects_would_you_like_to_receive_the_most_support_with")
+  rename("subjects" = "which_subjects_would_you_like_to_receive_the_most_support_with_1st_choice")
 ```
 
 ```{r}
@@ -24,47 +24,45 @@ tutors <- read_sheet("https://docs.google.com/spreadsheets/d/1WF7al7SOlf3ntEUwVE
          "subject" = "which_subjects_are_you_comfortable_helping_students_with")
 ```
 
-
 ```{r}
 my_students <- students[c(124:164), ]
 
 my_students %>% 
   group_by(grade_level) %>% 
   count() 
+
 ```
 
 ```{r}
 student_name_location_grade <- my_students %>% 
-  select(student_name, grade_level, state_abbreviation, subjects) 
+  select(student_name_first_and_last, grade_level, state, subjects) %>% 
+  rename(student_name = student_name_first_and_last)
 
 tutor_name_location_grade_subject <- tutors %>% 
-  select(name, hometown_location, grade, subject) 
+  select(name, state, grade, subject) 
 
 CA_tutors <- tutor_name_location_grade_subject %>% 
-  filter(str_detect(hometown_location, "CA")) %>% 
+  filter(str_detect(state, "CA")) %>% 
   filter(str_detect(subject, "Physics")) %>% 
   filter(str_detect(subject, "Calculus")) 
 ```
 
 ```{r}
 current <- student_name_location_grade %>% 
-  filter(grade_level == "9th") %>% 
-  View()
+  filter(grade_level == "9th") 
 
 current
 ```
 
 ```{r}
 tutor_name_location_grade_subject %>% 
-  filter(str_detect(subject, "Computer Science")) %>% 
-  View()
+  filter(str_detect(subject, "Computer Science")) 
 ```
 
 ```{r}
 current_tutor <- tutor_name_location_grade_subject %>% 
-  filter(str_detect(hometown_location, "NY")) %>% 
-  filter(str_detect(subject, "Math")) %>% 
-  View()
+  filter(str_detect(state, "NY")) %>% 
+  filter(str_detect(subject, "Math")) 
 ```
 
 ```{r}
@@ -81,6 +79,30 @@ my_juniors <- student_name_location_grade %>%
 my_seniors <- student_name_location_grade %>% 
   filter(grade_level == "12th") 
 ```
+
+## Coercing AER resource
+
+```{r}
+aer <- read_sheet("https://docs.google.com/spreadsheets/d/18TiOCU3Ly3KcdrocCRLHwNTiaNqDoOcnva91f46Ee80/edit#gid=0") %>% 
+  select(-7) %>% 
+  clean_names()
+```
+
+```{r}
+aer %>% 
+  mutate(resource_for_grade = 
+           if(str_detect(grade_age_group, c("K", "1st", "2nd",
+                                            "3rd", "4th", "5th"))) {elementary
+             } else {
+               if(str_detect(grade_age_group, 
+                        c("6th", "7th", "8th"))) {middle_school
+   } else {if(str_detect(grade_age_group, c("9th", "10th", "11th", "12th", "High School")))
+                         {high_school}
+   }
+             }
+  ) 
+```
+
 
 Seniors: DONE
 Juniors:
