@@ -9,6 +9,9 @@ library(tidyverse)
 library(janitor)
 library(googlesheets4)
 library(stringr)
+library(writexl)
+library(googlesheets)
+library(openxlsx)
 ```
 
 ```{r}
@@ -146,6 +149,9 @@ designations7[c("company", "for_grade", "category_subject", "link", "description
 
 ```
 
+```{r}
+coved_sheet <- write.xlsx(designations7, 'aeresources.xlsx')
+```
 
 Seniors: DONE
 Juniors:
