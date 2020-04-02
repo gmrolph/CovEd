@@ -25,11 +25,11 @@ tutors <- read_sheet("https://docs.google.com/spreadsheets/d/1WF7al7SOlf3ntEUwVE
 ```
 
 ```{r}
-my_students <- students[c(124:164), ]
+my_students <- students[c(551:570), ]
 
 my_students %>% 
   group_by(grade_level) %>% 
-  count() 
+  count()
 
 ```
 
@@ -41,15 +41,11 @@ student_name_location_grade <- my_students %>%
 tutor_name_location_grade_subject <- tutors %>% 
   select(name, state, grade, subject) 
 
-CA_tutors <- tutor_name_location_grade_subject %>% 
-  filter(str_detect(state, "CA")) %>% 
-  filter(str_detect(subject, "Physics")) %>% 
-  filter(str_detect(subject, "Calculus")) 
 ```
 
 ```{r}
 current <- student_name_location_grade %>% 
-  filter(grade_level == "9th") 
+  filter(grade_level == "11th") 
 
 current
 ```
@@ -61,8 +57,8 @@ tutor_name_location_grade_subject %>%
 
 ```{r}
 current_tutor <- tutor_name_location_grade_subject %>% 
-  filter(str_detect(state, "NY")) %>% 
-  filter(str_detect(subject, "Math")) 
+  filter(str_detect(state, "CA")) %>% 
+  filter(str_detect(subject, "AP U.S. History")) 
 ```
 
 ```{r}
@@ -88,19 +84,66 @@ aer <- read_sheet("https://docs.google.com/spreadsheets/d/18TiOCU3Ly3KcdrocCRLHw
   clean_names()
 ```
 
-```{r}
-aer %>% 
-  mutate(resource_for_grade = 
-           if(str_detect(grade_age_group, c("K", "1st", "2nd",
-                                            "3rd", "4th", "5th"))) {elementary
-             } else {
-               if(str_detect(grade_age_group, 
-                        c("6th", "7th", "8th"))) {middle_school
-   } else {if(str_detect(grade_age_group, c("9th", "10th", "11th", "12th", "High School")))
-                         {high_school}
-   }
-             }
+```{r ajh}
+aer <- aer %>% mutate(
+  grade_age_group = sapply(grade_age_group, paste0, collapse="")) %>% 
+  mutate(
+  elementary = str_detect(grade_age_group,"K|1st|2nd|3rd|4th|5th"),
+  middle = str_detect(grade_age_group,c("6th|7th|8th")),
+  high = str_detect(grade_age_group,c("9th|10th|11th|12th|High School")) 
+  )
+  
+aer <- aer %>% mutate(
+  grade_age_group = sapply(grade_age_group, paste0, collapse="")) %>% 
+  mutate(
+  elementary = ifelse(str_detect(grade_age_group,"K|1st|2nd|3rd|4th|5th") == TRUE, "elementary", ""),
+  middle = ifelse(str_detect(grade_age_group,c("6th|7th|8th"))==TRUE, "middle", ""),
+  high = ifelse(str_detect(grade_age_group,c("9th|10th|11th|12th|High School")), "high school", ""),
+  for_grade = paste(elementary, middle, high, sep = ", ") 
   ) 
+```
+
+```{r}
+
+designations <- aer %>% 
+  mutate(for_grade = 
+          str_replace(for_grade, ", ,", "all ages")) 
+
+designations1 <- designations %>% 
+  mutate(for_grade = 
+           str_replace(for_grade, "elementary, middle, high school", "K-12"))
+
+designations2 <- designations1 %>% 
+  mutate(for_grade =
+           str_replace(for_grade, ", middle, high school", "Middle & High School (Grades 6-12)")) 
+
+designations3 <- designations2 %>% 
+  mutate(for_grade =
+           str_replace(for_grade, "elementary, middle,", "Elementary & Middle School (Grades K-8)")) 
+
+designations4 <- designations3 %>% 
+  mutate(for_grade =
+           str_replace(for_grade, "elementaryall ages", "Elementary School (KG-5th Grade)")) 
+
+designations5 <- designations4 %>% 
+  mutate(for_grade =
+           str_replace(for_grade, ", middle,", "Middle School (6th-8th Grade)")) 
+
+designations6 <- designations5 %>% 
+  mutate(for_grade =
+           str_replace(for_grade, "all ages high school", "High School (9th-12th Grade)"))
+
+designations7 <- designations6 %>% 
+  filter(!for_grade == "Elementary School (KG-5th Grade) high school")
+```
+
+```{r}
+designations7[c("company", "for_grade", "category_subject", "link", "description")] %>%
+  rename("This resource addresses the following subjects" = category_subject,
+         "Resource Link" = link,
+         "Resource Description" = description,
+         "This resource is appropriate for students in" = for_grade)
+
 ```
 
 
